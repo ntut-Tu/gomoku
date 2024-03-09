@@ -85,7 +85,8 @@ int* writeChessBoard(ChessArray *chessBoard,int player){
     int x,y;
     int *coordinate = (int *) malloc(3*sizeof (int));      //建立動態內存//白話文:建立一個在函式裡建立並回傳的陣列(指標)//int*:指標變數，如果你不知道，C的陣列存的其實是陣列起始的地址
     while(true){                                                //malloc(成員數量*每個成員的記憶體空間):建立動態內存//(int *):轉換為int的指標，因為原本的 malloc 不知道為什麼類型是 (void *)
-        x=rand() % 20 + 1;      //random 1~20 , from stdlib.h
+        //random 1~20 , from stdlib.h , 此部分應該要用決策樹取代，新增讀取已落子區域
+        x=rand() % 20 + 1;
         y=rand() % 20 + 1;
         if(setXY(chessBoard,x,y,player)){
             coordinate[0]=x;
