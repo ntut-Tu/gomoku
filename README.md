@@ -1,8 +1,12 @@
 # gomoku
-
+ # 注意事項&更新
  * 編譯環境不要有中文
-   
-   為了做測試playerB已完成起手規則
+* 03/10:
+
+  - 完成playerA起始3回合
+  - 為了做測試playerB.py已完成起手規則
+  - 創建playerUrSelf用於手動測試玩家當白棋 (將rand()改回來就是playerB.c了)
+  
 
  # 新增起手三回合規則
  
