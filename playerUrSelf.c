@@ -117,7 +117,8 @@ GoResult go(char *fileName,ChessArray *chessBoard){
     FILE *file = fopen(fileName,"r");
     char data0;
     fscanf(file," %c ",&data0);     //原本的程式是讀取每一行，取出第一行做判斷，但其實檔案只有兩行所以怎麼讀取沒差
-    int player,co_player;
+    int player=1;
+    int co_player=0;
     if(checkString(fileName,"a.txt")==0){
         player=0;
         co_player=1;
@@ -127,6 +128,13 @@ GoResult go(char *fileName,ChessArray *chessBoard){
         fscanf(file,"%d %d",&coor[0],&coor[1]);     //讀取第二行
         int x=coor[0];
         int y=coor[1];
+        if(x==0&&y==0){
+            fclose(file);
+            goResult.legal=false;
+            goResult.x=0;
+            goResult.y=0;
+            return goResult;
+        }
         printf("2:%d %d\n",x,y);
         setXY(chessBoard,x,y,co_player);
         int* result=writeChessBoard(chessBoard,player);
@@ -153,7 +161,7 @@ int main(){
     ChessArray chessBoard;
     init_ChessArray(&chessBoard);
     char fileName[6];
-    printf("fileName A:");
+    printf("fileName B:");
     scanf(" %s",fileName);
     int count=0;
     GoResult goResult;
