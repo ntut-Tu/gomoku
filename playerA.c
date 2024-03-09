@@ -7,6 +7,12 @@
 #include <unistd.h> //usleep()
 #include <stdbool.h>
 
+#define MIDPOINT_X 10
+#define MIDPOINT_Y 10
+#define BORDER_X 20
+#define BORDER_Y 20
+//全域變數roundCounter
+int roundCounter=0;
 
 //替代class Chess 自訂義Struct : ChessArray({int x,int y,int player},int size)-----
 typedef struct{             //typedef:讓你能像在用其他語言時一樣用: Struct名稱 物件名稱 ，而不是: Struct Struct名稱 物件名稱
@@ -79,20 +85,90 @@ void writeBackSever(char *fileName,int x,int y){
     fclose(file); //close
 }
 
+//新增的approach計算區域--------------------------------
+int approach(int width,int denyCount,int size){
+    int trueWidth=2*width+1;
+    if(trueWidth>BORDER_X){
+        return width;
+    }
+    if(denyCount>(trueWidth*trueWidth-size)){
+        return width+1;
+    }
+    return width;
+}
+//新增的approach計算區域--------------------------------
+
+
 //原 writeChessBoard() 實作-----
 //註:使用 int* result=writeChessBoard(&chessBoard,player) 讀取回傳值，用完 result 記得 free(result)
 int* writeChessBoard(ChessArray *chessBoard,int player){
+    //新增的approach算法計數
+    int denyCount=0;
+    int width=2;
+    //
     int x,y;
     int *coordinate = (int *) malloc(3*sizeof (int));      //建立動態內存//白話文:建立一個在函式裡建立並回傳的陣列(指標)//int*:指標變數，如果你不知道，C的陣列存的其實是陣列起始的地址
     while(true){                                                //malloc(成員數量*每個成員的記憶體空間):建立動態內存//(int *):轉換為int的指標，因為原本的 malloc 不知道為什麼類型是 (void *)
-        //random 1~20 , from stdlib.h , 此部分應該要用決策樹取代，新增讀取已落子區域
-        x=rand() % 20 + 1;
-        y=rand() % 20 + 1;
+        if(roundCounter>1){
+            /*
+            //random 1~20 , from stdlib.h , 此部分應該要用決策樹取代，新增讀取已落子區域
+            x=rand() % (BORDER_X+1) + 1;
+            y=rand() % (BORDER_Y+1) + 1;
+             */
+            width=approach(width,denyCount,chessBoard->size);
+            printf("width=%d\n",width);
+            x=rand() % (width) + (MIDPOINT_X- width);
+            y=rand() % (width) + (MIDPOINT_Y- width);
+//新增的起手規則-------------------------------------------------START
+        }else if(roundCounter==0){
+            x=MIDPOINT_X;
+            y=MIDPOINT_Y;
+        }else{
+            if(chessBoard->cord[1][0]>MIDPOINT_X){//右
+                if(chessBoard->cord[1][1]>MIDPOINT_Y){ //右上
+                    x=MIDPOINT_X+2;
+                    y=MIDPOINT_Y+2;
+                }else{
+                    if(chessBoard->cord[1][1]<MIDPOINT_Y){  //右下
+                        x=MIDPOINT_X+2;
+                        y=MIDPOINT_Y-2;
+                    }else{  //正右
+                        x=MIDPOINT_X+2;
+                        y=MIDPOINT_Y;
+                    }
+                }
+            }else if(chessBoard->cord[1][0]<MIDPOINT_X){    //左
+                if(chessBoard->cord[1][1]>MIDPOINT_Y){  //左上
+                    x=MIDPOINT_X-2;
+                    y=MIDPOINT_Y+2;
+                }else if(chessBoard->cord[1][1]<MIDPOINT_Y){  //左下
+                    x=MIDPOINT_X-2;
+                    y=MIDPOINT_Y-2;
+                }else{  //正左
+                    x=MIDPOINT_X-2;
+                    y=MIDPOINT_Y;
+                }
+                }else{
+                    if(chessBoard->cord[1][1]>MIDPOINT_Y){  //正上
+                        x=MIDPOINT_X;
+                        y=MIDPOINT_Y+2;
+                    }else{  //正下
+                        x=MIDPOINT_X;
+                        y=MIDPOINT_Y-2;
+                    }
+            }
+//新增的起手規則-------------------------------------------------END
+        }
         if(setXY(chessBoard,x,y,player)){
             coordinate[0]=x;
             coordinate[1]=y;
             return coordinate;
         }
+        //新增的approach算法計數
+        else{
+            denyCount++;
+        }
+        //
     }
 }
 
@@ -149,6 +225,18 @@ GoResult go(char *fileName,ChessArray *chessBoard){
 }
 //原 go() 實作----------END
 
+//黑白棋交換實作-----
+void switchSide(ChessArray *chessBoard){
+    for(int i =0;i<chessBoard->size;i++){
+        if(chessBoard->cord[i][2]==1){
+            chessBoard->cord[i][2]==0;
+        }else{
+            chessBoard->cord[i][2]==1;
+        }
+    }
+}
+
+
 int main(){
     ChessArray chessBoard;
     init_ChessArray(&chessBoard);
@@ -162,6 +250,7 @@ int main(){
         goResult= go(fileName,&chessBoard);
         if(goResult.legal==true){
             count+=1;
+            roundCounter=count;
             printf("%d\n",count);
             printChess(&chessBoard);
             if(count>50){
