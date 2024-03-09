@@ -1,6 +1,7 @@
 import random
 import time
 
+
 class Chess:
     def __init__(self):
         self.cord = []        
@@ -26,7 +27,9 @@ def writeBackServer(fileName: str, x:int, y: int):
 
 def writeChessBoard(chess: Chess, player: int):
     while True:
-        x, y = random.randint(1, 20), random.randint(1, 20)
+        x, y = random.randint(1, 21), random.randint(1, 21)
+        if chess.size==1:
+            x,y=random.randint(9,11), random.randint(9,11)
         if chess.setXY(x, y, player) == True:
             return x, y
 
