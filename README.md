@@ -28,6 +28,8 @@
 不確定是否真的佔優，需更改
 
  # 缺33/44/長聯規則
+ 
+也許能新增一個chessArray作來儲存禁點，當作已被下過，在pushBack playerB 時同時掃描並pushBack 禁點
 
  # 新增Approach算法:
 
