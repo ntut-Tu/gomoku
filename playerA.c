@@ -85,8 +85,8 @@ void writeBackSever(char *fileName,int x,int y){
     fclose(file); //close
 }
 
-//新增的approach計算區域--------------------------------
-int approach(int width,int denyCount,int size){
+//新增的expand計算區域--------------------------------
+int expand(int width,int denyCount,int size){
     int trueWidth=2*width+1;
     if(trueWidth>BORDER_X){
         return width;
@@ -102,7 +102,7 @@ int approach(int width,int denyCount,int size){
 //原 writeChessBoard() 實作-----
 //註:使用 int* result=writeChessBoard(&chessBoard,player) 讀取回傳值，用完 result 記得 free(result)
 int* writeChessBoard(ChessArray *chessBoard,int player){
-    //新增的approach算法計數
+    //新增的expand算法計數
     int denyCount=0;
     int width=2;
     //
@@ -115,7 +115,7 @@ int* writeChessBoard(ChessArray *chessBoard,int player){
             x=rand() % (BORDER_X+1) + 1;
             y=rand() % (BORDER_Y+1) + 1;
              */
-            width=approach(width,denyCount,chessBoard->size);
+            width=expand(width,denyCount,chessBoard->size);
             printf("width=%d\n",width);
             x=rand() % (width) + (MIDPOINT_X- width);
             y=rand() % (width) + (MIDPOINT_Y- width);
@@ -164,7 +164,7 @@ int* writeChessBoard(ChessArray *chessBoard,int player){
             coordinate[1]=y;
             return coordinate;
         }
-        //新增的approach算法計數
+        //新增的expand算法計數
         else{
             denyCount++;
         }
