@@ -8,6 +8,10 @@
   - 為了做測試playerB.py已完成起手規則
   - 創建playerUrSelf用於手動測試玩家當白棋 (將rand()改回來就是playerB.c了)
   - 創建switchSide用於黑白交換時將chessBoard的player編號反轉  *應該要有切換後的新算法
+
+ # TODO
+ 
+ * 座標改用struct增加可讀性
     
  # 構想
  
