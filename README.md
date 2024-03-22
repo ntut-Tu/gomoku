@@ -8,6 +8,33 @@
   - 為了做測試playerB.py已完成起手規則
   - 創建playerUrSelf用於手動測試玩家當白棋 (將rand()改回來就是playerB.c了)
   - 創建switchSide用於黑白交換時將chessBoard的player編號反轉  *應該要有切換後的新算法
+ 
+* 03/22:
+
+  - 確定要建立的基本棋型:
+
+    - 活三
+    - 活四
+    - 冲四
+    - 活二
+    - 眠三
+    - 眠二
+
+  - 儲存方式:
+
+    - (1) 將滿足以上的棋型一各棋型存成各個 Map (23x23) x 6 ， 優點可以無腦循訪每個Map ， 缺點後續新增自訂義的棋型時浪費空間 
+    - (2) 將滿足以上的棋型座標存在各個陣列就好 ， 省較多空間
+    - (3) 只有一張 Map ， 在每個滿足該棋型的點座標內存入滿足該棋行所需的其他座標點 ， 有點類似 Bucket Arrary 的感覺?
+      
+  - 掃描棋盤方式:
+
+    - y=0的row做垂直和左上、右上
+    - x=0的col做水平和右上
+    - x=MAX的col做左上
+      
+![image](https://github.com/ntut-Tu/gomoku/assets/160988691/73ce85fc-cd9f-4ef5-8eef-b16c0f5ac4e2)
+
+    
 
  # TODO
  
