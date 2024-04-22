@@ -8,6 +8,19 @@
   - 為了做測試playerB.py已完成起手規則
   - 創建playerUrSelf用於手動測試玩家當白棋 (將rand()改回來就是playerB.c了)
   - 創建switchSide用於黑白交換時將chessBoard的player編號反轉  *應該要有切換後的新算法
+
+* 4/07:
+
+  - 更新避免犯規:
+
+     - playerA_With_Avoid_Function 原playerA加入避免犯規的算法
+     - mapTest 用於避免犯規算法測試
+ 
+  - 避免犯規算法沒有寫得很明確可能會出現例外犯規、合法卻被認為犯規的情況"
+
+     - 沖四活三可能誤認
+     - 任何被對手阻擋後應該變為合法的位置，不確定會如何
+     - 長連忘了加進規則
  
 * 03/22:
 
