@@ -49,6 +49,9 @@
      - 沖四活三可能誤認
      - 任何被對手阻擋後應該變為合法的位置，不確定會如何
      - 長連忘了加進規則
+   
+    ![image](https://github.com/ntut-Tu/gomoku/assets/160988691/8aff3f55-6040-4b76-990b-7e3f00e91fcc)
+
 
  # TODO
  
