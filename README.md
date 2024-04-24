@@ -42,7 +42,7 @@
   - 更新避免犯規:
 
      - playerA_With_Avoid_Function 原playerA加入避免犯規的算法
-     - mapTest 用於避免犯規算法測試
+     - mapTest 用於避免犯規算法測試 test it online https://colab.research.google.com/drive/1Nq43Yp5bE9WivSrt1d9EBwvBtUc4RcXc?usp=sharing
  
   - 避免犯規算法沒有寫得很明確可能會出現例外犯規、合法卻被認為犯規的情況"
 
