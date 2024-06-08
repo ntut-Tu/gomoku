@@ -199,7 +199,7 @@ float evaluatePosition(int board[MAX][MAX], int x, int y, int player) {
     } else if (op_line == 4) {
         score += 500; // 阻止對手的連四
     }else if (op_line == 3){
-        score += 50;
+        score += 60;
     }
 
     return score;
