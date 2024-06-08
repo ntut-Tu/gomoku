@@ -79,9 +79,13 @@ int checkLine(int board[MAX][MAX], int x, int y, int player) {
                     if (board[ny][nx] == player) {
                         count++;
                     }else{
+                        //判斷活死
                         if(board[ny][nx] == 3 - player){
+                            //若出現 x 2 2 2 1 時視為3子(2子)而已
                             offset = -1;
                         }else{
+                            //若為空格
+                            /*
                             nx = x + (j+1) * dx[i]; // 計算相鄰位置的 x 座標
                             ny = y + (j+1) * dy[i]; // 計算相鄰位置的 y 座標
                             if (round == 1) { // 反方向
@@ -89,12 +93,14 @@ int checkLine(int board[MAX][MAX], int x, int y, int player) {
                                 ny = y - (j+1) * dy[i];
                             }
                             if (nx >= 0 && nx < MAX && ny >= 0 && ny < MAX){
+                                //若出現 x 2 2 2 0 1 時視為3子而已 *(issue)
+                                //有誤:這種情形的威脅性應該遠大於上面
                                 if(board[ny][nx] == 3 - player){
                                     offset = -1;
                                 }
                             }else{
                                 offset = -1;
-                            }
+                            }*/
                         }
                         break; // 遇到空格或對手棋子停止計算
                     }
@@ -167,10 +173,10 @@ float checkUnValid(int board[MAX][MAX], int x, int y, int player) {
     }
 
     if (fourCount >= 2) {
-        return 1.5f; //四四
+        return 6; //四四
     }
     if (threeCount >= 2) {
-        return 6; // 三三禁點 / 四四禁點
+        return 11; // 三三
     }
 
     return 1; // 有效
