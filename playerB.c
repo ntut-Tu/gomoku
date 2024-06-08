@@ -65,8 +65,10 @@ int checkLine(int board[MAX][MAX], int x, int y, int player) {
     // 檢查四個方向
     for (int i = 0; i < 4; i++) {
         int count = 1; // 包含假設落子的這一個
+        int offset = 0;
 
         for (int round = 0; round < 2; round++) {
+            offset = 0;
             for (int j = 1; j < MAX; j++) {
                 int nx = x + j * dx[i]; // 計算相鄰位置的 x 座標
                 int ny = y + j * dy[i]; // 計算相鄰位置的 y 座標
@@ -76,9 +78,18 @@ int checkLine(int board[MAX][MAX], int x, int y, int player) {
                 }
                 if (nx >= 0 && nx < MAX && ny >= 0 && ny < MAX) {
                     if (board[ny][nx] == player) count++;
-                    else break; // 遇到空格或對手棋子停止計算
-                } else break; // 超出邊界停止計算
+                    else {
+                        offset = -1;
+                        break; // 遇到空格或對手棋子停止計算
+                    }
+                } else {
+                    offset = -1;
+                    break;
+                } // 超出邊界停止計算
             }
+        }
+        if(count !=5 && count!=0){
+            count += offset;
         }
         // 更新最大連線數
         if (count > maxLine) maxLine = count;
@@ -94,7 +105,7 @@ int checkLine(int board[MAX][MAX], int x, int y, int player) {
 - player: 當前玩家的標識（1 或 2）
 返回值：
 - 返回1如果落子後形成有效連線，否則返回禁手代碼（-3：三三禁手，-4：四四禁手，-5：長連禁手）*/
-int checkUnValid(int board[MAX][MAX], int x, int y, int player) {
+float checkUnValid(int board[MAX][MAX], int x, int y, int player) {
     int dx[] = {1, 1, 0, -1}; // 水平、垂直、主對角線、副對角線的移動方向
     int dy[] = {0, 1, 1, 1};
     int threeCount = 0, fourCount = 0; // 禁手規則計數器
@@ -135,20 +146,24 @@ int checkUnValid(int board[MAX][MAX], int x, int y, int player) {
         }
         // 檢查長連禁點
         if (count > 5) {
-            return -1; // 長連禁點
+            return 1; // 長連禁點
         }
     }
 
-    if (threeCount >= 2 || fourCount >= 2) {
-        return -1; // 三三禁點 / 四四禁點
+    if (fourCount >= 2) {
+        return 1.5; //四四
     }
+    if (threeCount >= 2) {
+        return 6; // 三三禁點 / 四四禁點
+    }
+
     return 1; // 有效
 }
 
 // 加權函數
-int evaluatePosition(int board[MAX][MAX], int x, int y, int player) {
+float evaluatePosition(int board[MAX][MAX], int x, int y, int player) {
     // 根據進攻和防守策略評估位置的範例函數
-    int score = 0;
+    float score = 0;
     int my_line = checkLine(board, x, y, player);
     int op_line = checkLine(board, x, y, 3 - player);
     // 進攻策略
@@ -160,6 +175,8 @@ int evaluatePosition(int board[MAX][MAX], int x, int y, int player) {
         score += 100; // 活三
     } else if (my_line == 2) {
         score += 50; // 活二
+    }else if (my_line == 1){
+        score += 1;
     }
 
     // 防守策略
@@ -176,23 +193,21 @@ int evaluatePosition(int board[MAX][MAX], int x, int y, int player) {
 
 // 找最佳落子
 void findBestMove(int board[MAX][MAX], int *bestX, int *bestY, int player) {
-    int maxScore = -1; // 初始化最大分數
+    float maxScore = -1; // 初始化最大分數
     int x, y;
     bool found = false; // 判斷是否找到合適位置
 
     // 遍歷棋盤上的每個位置
     for (x = 1; x < MAX; x++) {
         for (y = 1; y < MAX; y++) {
-            if (checkUnValid(board, x, y, player)) { // 使用禁手規則檢查
-                int score = evaluatePosition(board, x, y, player); // 計算當前位置的分數
-                printf("(%d, %d)--->%d\n",x,y,score);
-                // 若當前位置的權重值大於當前最大值，更新最大值及對應座標
-                if (score > maxScore) {
-                    maxScore = score;
-                    *bestX = x;
-                    *bestY = y;
-                    found = true;
-                }
+            float score = evaluatePosition(board, x, y, player) * checkUnValid(board, x, y, player); // 計算當前位置的分數
+            printf("(%d, %d)--->%d\n",x,y,score);
+            // 若當前位置的權重值大於當前最大值，更新最大值及對應座標
+            if (score > maxScore) {
+                maxScore = score;
+                *bestX = x;
+                *bestY = y;
+                found = true;
             }
         }
     }
