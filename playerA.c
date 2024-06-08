@@ -285,37 +285,6 @@ int* writeChessBoard(ChessArray *chessBoard, int player, int board[MAX][MAX]) {
             x = MIDPOINT_X;
             y = MIDPOINT_Y;
         } else {
-//            if (chessBoard->cord[1][0] > MIDPOINT_X) {
-//                if (chessBoard->cord[1][1] > MIDPOINT_Y) {
-//                    x = MIDPOINT_X + 2;
-//                    y = MIDPOINT_Y + 2;
-//                } else if (chessBoard->cord[1][1] < MIDPOINT_Y) {
-//                    x = MIDPOINT_X + 2;
-//                    y = MIDPOINT_Y - 2;
-//                } else {
-//                    x = MIDPOINT_X + 2;
-//                    y = MIDPOINT_Y;
-//                }
-//            } else if (chessBoard->cord[1][0] < MIDPOINT_X) {
-//                if (chessBoard->cord[1][1] > MIDPOINT_Y) {
-//                    x = MIDPOINT_X - 2;
-//                    y = MIDPOINT_Y + 2;
-//                } else if (chessBoard->cord[1][1] < MIDPOINT_Y) {
-//                    x = MIDPOINT_X - 2;
-//                    y = MIDPOINT_Y - 2;
-//                } else {
-//                    x = MIDPOINT_X - 2;
-//                    y = MIDPOINT_Y;
-//                }
-//            } else {
-//                if (chessBoard->cord[1][1] > MIDPOINT_Y) {
-//                    x = MIDPOINT_X;
-//                    y = MIDPOINT_Y + 2;
-//                } else {
-//                    x = MIDPOINT_X;
-//                    y = MIDPOINT_Y - 2;
-//                }
-//            }
             x = MIDPOINT_X + (rand() % 5) - 2;
             y = MIDPOINT_Y + (rand() % 5) - 2;
             while(board[x][y]!=0){
@@ -398,9 +367,14 @@ GoResult go(char *fileName,ChessArray *chessBoard, char playerRole,int board[MAX
 //原 go() 實作----------END
 
 void printBoard(int board[MAX][MAX]) {
-    for (int i = 0; i < MAX; i++) {
-        for (int j = 0; j < MAX; j++) {
-            printf("%d ", board[i][j]);
+    for(int i = 0; i<MAX; i++){
+        printf("%2d ",i);
+    }
+    printf("\n");
+    for (int i = 1; i < MAX; i++) {
+        printf("%2d ",i);
+        for (int j = 1; j < MAX; j++) {
+            printf("%2d ", board[i][j]);
         }
         printf("\n");
     }
