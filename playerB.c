@@ -68,7 +68,6 @@ int checkLine(int board[MAX][MAX], int x, int y, int player) {
         int offset = 0;
 
         for (int round = 0; round < 2; round++) {
-            offset = 0;
             for (int j = 1; j < MAX; j++) {
                 int nx = x + j * dx[i]; // 計算相鄰位置的 x 座標
                 int ny = y + j * dy[i]; // 計算相鄰位置的 y 座標
@@ -77,9 +76,26 @@ int checkLine(int board[MAX][MAX], int x, int y, int player) {
                     ny = y - j * dy[i];
                 }
                 if (nx >= 0 && nx < MAX && ny >= 0 && ny < MAX) {
-                    if (board[ny][nx] == player) count++;
-                    else {
-                        offset = -1;
+                    if (board[ny][nx] == player) {
+                        count++;
+                    }else{
+                        if(board[ny][nx] == 3 - player){
+                            offset = -1;
+                        }else{
+                            nx = x + (j+1) * dx[i]; // 計算相鄰位置的 x 座標
+                            ny = y + (j+1) * dy[i]; // 計算相鄰位置的 y 座標
+                            if (round == 1) { // 反方向
+                                nx = x - (j+1) * dx[i];
+                                ny = y - (j+1) * dy[i];
+                            }
+                            if (nx >= 0 && nx < MAX && ny >= 0 && ny < MAX){
+                                if(board[ny][nx] == 3 - player){
+                                    offset = -1;
+                                }
+                            }else{
+                                offset = -1;
+                            }
+                        }
                         break; // 遇到空格或對手棋子停止計算
                     }
                 } else {
@@ -151,7 +167,7 @@ float checkUnValid(int board[MAX][MAX], int x, int y, int player) {
     }
 
     if (fourCount >= 2) {
-        return 1.5; //四四
+        return 1.5f; //四四
     }
     if (threeCount >= 2) {
         return 6; // 三三禁點 / 四四禁點
@@ -175,8 +191,6 @@ float evaluatePosition(int board[MAX][MAX], int x, int y, int player) {
         score += 100; // 活三
     } else if (my_line == 2) {
         score += 50; // 活二
-    }else if (my_line == 1){
-        score += 1;
     }
 
     // 防守策略
@@ -200,8 +214,16 @@ void findBestMove(int board[MAX][MAX], int *bestX, int *bestY, int player) {
     // 遍歷棋盤上的每個位置
     for (x = 1; x < MAX; x++) {
         for (y = 1; y < MAX; y++) {
-            float score = evaluatePosition(board, x, y, player) * checkUnValid(board, x, y, player); // 計算當前位置的分數
-            printf("(%d, %d)--->%d\n",x,y,score);
+            float score;
+            if(checkUnValid(board, x, y, player)>0){
+                score = evaluatePosition(board, x, y, player) * checkUnValid(board, x, y, player); // 計算當前位置的分數
+            }else{
+                score = evaluatePosition(board, x, y, player);
+            }
+
+            if(score!=0){
+                printf("(%d, %d)--->%.0f\n",x,y,score);
+            }
             // 若當前位置的權重值大於當前最大值，更新最大值及對應座標
             if (score > maxScore) {
                 maxScore = score;
@@ -345,13 +367,13 @@ GoResult go(char *fileName,ChessArray *chessBoard, char playerRole,int board[MAX
         fscanf(file,"%d %d",&coor[0],&coor[1]);     //讀取第二行
         int x=coor[0];
         int y=coor[1];
+        printf("2:%d %d\n",x,y);
         if(x == 0 && y==0){
             goResult.legal=false;
             goResult.x=0;
             goResult.y=0;
             return goResult;
         }
-        printf("2:%d %d\n",x,y);
         setXY(chessBoard,x,y,co_player,board);
         int* result=writeChessBoard(chessBoard,player,board);
         x=result[0];
@@ -374,9 +396,14 @@ GoResult go(char *fileName,ChessArray *chessBoard, char playerRole,int board[MAX
 //原 go() 實作----------END
 
 void printBoard(int board[MAX][MAX]) {
-    for (int i = 0; i < MAX; i++) {
-        for (int j = 0; j < MAX; j++) {
-            printf("%d ", board[i][j]);
+    for(int i = 0; i<MAX; i++){
+        printf("%2d ",i);
+    }
+    printf("\n");
+    for (int i = 1; i < MAX; i++) {
+        printf("%2d ",i);
+        for (int j = 1; j < MAX; j++) {
+            printf("%2d ", board[i][j]);
         }
         printf("\n");
     }
