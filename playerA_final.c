@@ -12,8 +12,33 @@
 #define MIDPOINT_X 11
 #define MIDPOINT_Y 11
 #define MAX 21
+
 //全域變數roundCounter
 int roundCounter=0;
+// 定義位置权重
+int positionWeight[MAX][MAX] = {
+    { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 },
+    { 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0 },
+    { 0, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 1, 0 },
+    { 0, 1, 2, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 2, 1, 0 },
+    { 0, 1, 2, 3, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 3, 2, 1, 0 },
+    { 0, 1, 2, 3, 4, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 4, 3, 2, 1, 0 },
+    { 0, 1, 2, 3, 4, 5, 6, 6, 6, 6, 6, 6, 6, 6, 6, 5, 4, 3, 2, 1, 0 },
+    { 0, 1, 2, 3, 4, 5, 6, 7, 7, 7, 7, 7, 7, 7, 6, 5, 4, 3, 2, 1, 0 },
+    { 0, 1, 2, 3, 4, 5, 6, 7, 8, 8, 8, 8, 8, 7, 6, 5, 4, 3, 2, 1, 0 },
+    { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 9, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0 },
+    { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0 },
+    { 0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 9, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0 },
+    { 0, 1, 2, 3, 4, 5, 6, 7, 8, 8, 8, 8, 8, 7, 6, 5, 4, 3, 2, 1, 0 },
+    { 0, 1, 2, 3, 4, 5, 6, 7, 7, 7, 7, 7, 7, 7, 6, 5, 4, 3, 2, 1, 0 },
+    { 0, 1, 2, 3, 4, 5, 6, 6, 6, 6, 6, 6, 6, 6, 6, 5, 4, 3, 2, 1, 0 },
+    { 0, 1, 2, 3, 4, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 5, 4, 3, 2, 1, 0 },
+    { 0, 1, 2, 3, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 4, 3, 2, 1, 0 },
+    { 0, 1, 2, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 3, 2, 1, 0 },
+    { 0, 1, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 2, 1, 0 },
+    { 0, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 1, 0 },
+    { 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 }
+};
 
 //替代class Chess 自訂義Struct : ChessArray({int x,int y,int player},int size)-----
 typedef struct{             //typedef:讓你能像在用其他語言時一樣用: Struct名稱 物件名稱 ，而不是: Struct Struct名稱 物件名稱
@@ -48,15 +73,10 @@ void pop_ChessArray(ChessArray *array){
 }
 //ChessArray 基本新增與移除函式-----END
 
-/*檢查指定位置落子後是否形成指定有效連線數的數量
-參數：
-- board: 棋盤的狀態，二維整數陣列表示
-- x: 要檢查的位置的 x 座標
-- y: 要檢查的位置的 y 座標
-- player: 當前玩家的標識（1 或 2）
+/* 檢查指定位置落子後是否形成指定有效連線數的數量
 返回值：
-- 返回連線的數量，如果落子後形成有效連線，則返回大於1的正整數，否則返回 <=1*/
-int checkLine(int board[MAX][MAX], int x, int y, int player, int num) {
+- 返回連線的數量，如果落子後形成有效連線，則返回大於1的正整數，否則返回 <=1 */
+int checkLine(int board[MAX][MAX], int x, int y, int minX, int maxX, int minY, int maxY, int player, int num) {
     int total = 0;  // 有 num 连线的数量
     int dx[] = {1, 1, 0, -1}; // 水平、垂直、主对角线、副对角线的移动方向
     int dy[] = {0, 1, 1, 1};
@@ -71,14 +91,14 @@ int checkLine(int board[MAX][MAX], int x, int y, int player, int num) {
         int openEnds = 0; // 记录连线的两端是否开放
 
         for (int round = 0; round < 2; round++) {
-            for (int j = 1; j < MAX; j++) {
+            for (int j = 1; j < 6; j++) {
                 int nx = x + j * dx[i]; // 计算相邻位置的 x 坐标
                 int ny = y + j * dy[i]; // 计算相邻位置的 y 坐标
                 if (round == 1) { // 反方向
                     nx = x - j * dx[i];
                     ny = y - j * dy[i];
                 }
-                if (nx >= 0 && nx < MAX && ny >= 0 && ny < MAX) {
+                if (nx >= minX && nx < maxX && ny >= minY && ny < maxY) {
                     if (board[ny][nx] == player) {
                         count++;
                     } else if (board[ny][nx] == 0) {
@@ -92,22 +112,21 @@ int checkLine(int board[MAX][MAX], int x, int y, int player, int num) {
                 }
             }
         }
-        // 冲四處理
-        if (num == 6 && count == 4 && openEnds >= 1) {
-            total++;
-        } else if (count == num) {
-            total++;
+        // 五連(一段被堵)/眠二/眠三/冲四
+        if(openEnds == 1){
+            if ((num == 5 && count == 5)||(num == 6 && count == 2) ||(num == 7 && count == 3) || (num == 8 && count == 4)) {
+                total++;
+            }
+        }
+        // 活二三四五
+        else if(openEnds > 1){
+            if(count == num) total++;
         }
     }
     return total;
 }
 
 /* 檢查指定位置落子後是否形成無效連線（禁手）
-參數：
-- board: 棋盤的狀態，二維整數陣列表示
-- x: 要檢查的位置的 x 座標
-- y: 要檢查的位置的 y 座標
-- player: 當前玩家的標識（1 或 2）
 返回值：
 - 返回1如果落子後形成有效連線，否則返回禁手代碼（-3：三三禁手，-4：四四禁手，-5：長連禁手）*/
 int checkUnValid(int board[MAX][MAX], int x, int y, int player) {
@@ -161,35 +180,101 @@ int checkUnValid(int board[MAX][MAX], int x, int y, int player) {
     return 1; // 有效
 }
 
+// 只能檢查現在有沒有活四
+void checkNow(int board[MAX][MAX], int minX, int maxX, int minY, int maxY, int player, int my_now[9], int op_now[9]) {
+    for (int x = minX; x <= maxX; x++) {
+        for (int y = minY; y <= maxY; y++) {
+            if (board[y][x] == player) {
+                for (int i = 4; i < 6; i++) {
+                    my_now[i] += checkLine(board, x, y, minX, maxX, minY, maxY, player, i); 
+                }
+            } else if (board[y][x] == 3 - player) {
+                for (int i = 4; i < 6; i++) {
+                    op_now[i] += checkLine(board, x, y, minX, maxX, minY, maxY, 3 - player, i); 
+                }
+            }
+        }
+    }
+}
+
 // 加權函數
-int evaluatePosition(int board[MAX][MAX], int x, int y, int player) {
+int evaluatePosition(int board[MAX][MAX], int x, int y, int minX, int maxX, int minY, int maxY,int player) {
     // 根据进攻和防守策略评估位置的函数
     int total_score = 0, attack = 0, defence = 0;
-    // [0, 0, 活二，活三，活四， 活五， 冲四]
-    int my_line[7] = {0,0,0,0,0,0,0}, op_line[7] = {0,0,0,0,0,0,0}; // 该位置落子后，自己和对手的连线数
-
+    // [0, 0, 活二，活三，活四， 五連，眠二，眠三，冲四]
+    int my_line[9] = {0,0,0,0,0,0,0,0}, op_line[9] = {0,0,0,0,0,0,0,0}; // 该位置落子后，自己和对手的连线数
+    int my_now[9] = {0,0,0,0,0,0,0,0}, op_now[9] = {0,0,0,0,0,0,0,0}; 
+    
     // 更新
-    for (int i = 2; i < 7; i++) {
-        my_line[i] = checkLine(board, x, y, player, i); 
-        op_line[i] = checkLine(board, x, y, 3 - player, i); 
+    for (int i = 2; i < 8; i++) {
+        my_line[i] = checkLine(board, x, y, minX, maxX, minY, maxY, player, i); 
+        op_line[i] = checkLine(board, x, y, minX, maxX, minY, maxY, 3 - player, i);
+        
     }
+    // 目前自己和对手的连线数（4才有用）-->需要更新
+    checkNow(board, minX, maxX, minY, maxY, player, my_now, op_now);
 
-    // 进攻策略
-    attack += 1000 * my_line[5] + 95 * my_line[4] + 90 * my_line[6];
-    attack += 70 * my_line[3] + 55 * my_line[2];
-
-    // VCF 基本评估
-    if (my_line[6] > 0 && op_line[5] == 0) {
-        attack += 80; // 优先考虑自己的冲四
-    } else if (my_line[3] > 0 && my_line[6] > 0) { 
-        attack += 80; // 四三解禁
+    // 進攻策略
+    attack   += 500000 * my_line[5] +// 五連
+                10000 * my_line[4] + // 活四
+                8000 * my_line[8] +  // 冲四
+                7000 * my_line[3] +  // 活三
+                500 * my_line[7] +   // 眠三
+                50 * my_line[2] +    // 活二
+                10 * my_line[6];     // 眠二
+    // 四三解禁(進攻時機)
+    if (my_line[3] > 0 && my_line[6] > 0) { 
+        attack += 20000; 
     }
 
     // 防守策略
-    defence += 1000 * op_line[5] + 70 * op_line[4] + 50 * op_line[3];
+    defence  += 500000 * op_line[5] +// 五連
+                10000 * op_line[4] + // 活四
+                8000 * op_line[8] +  // 冲四
+                7000 * op_line[3] +  // 活三
+                500 * op_line[7] +   // 眠三
+                50 * op_line[2] +    // 活二
+                10 * op_line[6];     // 眠二
     
-    total_score += attack + defence;
+    // 若對手已經要有活四(現在已經是活三)，可是我沒有活四/冲四（危險）
+    if (op_line[4] > 0 && (my_now[4]< 0 ) ) { 
+        printf("stop_him----------------------------------->\n");
+        defence += 50000; 
+    }
+    // 若對手已經要有冲四(現在已經是眠三)，可是我沒有活四/冲四(非常危險)
+    if(op_line[8] > 0 && (my_now[4]<0 || my_line[4] < 0 || my_line[8]< 0)){
+        defence += 20000; 
+    }
+
+    // 計算
+    total_score +=  2 * attack + defence + 10 * positionWeight[x][y] ;
+    printf("(%d, %d)---->score:%d(%d+%d)\n",x,y, total_score,attack,defence);
     return total_score;
+}
+
+// 计算当前棋局的最小和最大边界
+void getBounds(int board[MAX][MAX], int *minX, int *maxX, int *minY, int *maxY) {
+    *minX = MAX;
+    *maxX = 0;
+    *minY = MAX;
+    *maxY = 0;
+    
+    for (int x = 0; x < MAX; x++) {
+        for (int y = 0; y < MAX; y++) {
+            if (board[y][x] != 0) {
+                if (x < *minX) *minX = x;
+                if (x > *maxX) *maxX = x;
+                if (y < *minY) *minY = y;
+                if (y > *maxY) *maxY = y;
+            }
+        }
+    }
+    
+    // 扩大边界
+    *minX = (*minX - 3 >= 0) ? *minX - 3 : 0;
+    *maxX = (*maxX + 3 < MAX) ? *maxX + 3 : MAX - 1;
+    *minY = (*minY - 3 >= 0) ? *minY - 3 : 0;
+    *maxY = (*maxY + 3 < MAX) ? *maxY + 3 : MAX - 1;
 }
 
 // 找最佳落子
@@ -198,17 +283,28 @@ void findBestMove(int board[MAX][MAX], int *bestX, int *bestY, int player) {
     int x, y;
     bool found = false; // 判斷是否找到合適位置
 
+    int minX, maxX, minY, maxY;
+    getBounds(board, &minX, &maxX, &minY, &maxY);
     // 遍歷棋盤上的每個位置
-    for (x = 1; x < MAX; x++) {
-        for (y = 1; y < MAX; y++) {
+    for (x = minX; x <= maxX; x++) {
+        for (y = minY; y <= maxY; y++) {
             if (checkUnValid(board, x, y, player)) { // 使用禁手規則檢查
-                int score = evaluatePosition(board, x, y, player); // 計算當前位置的分數
+                int score = evaluatePosition(board, x, y, minX, maxX, minY, maxY,player); // 計算當前位置的分數
                 // 若當前位置的權重值大於當前最大值，更新最大值及對應座標
                 if (score > maxScore) {
                     maxScore = score;
                     *bestX = x;
                     *bestY = y;
                     found = true;
+                }
+                else if(score == maxScore){
+                    int Magic = rand() % 2;
+                    if(Magic){
+                        maxScore = score;
+                        *bestX = x;
+                        *bestY = y;
+                        found = true;
+                    }
                 }
             }
         }
@@ -282,58 +378,36 @@ int* writeChessBoard(ChessArray *chessBoard, int player, int board[MAX][MAX]) {
     int x, y;
     int *coordinate = (int *) malloc(3 * sizeof(int));
     while (true) {
+        // 第三步開始
         if (roundCounter > 1) {
             int bestX, bestY;
             findBestMove(board, &bestX, &bestY, player); // 找到最佳位置
             x = bestX;
             y = bestY;
-        } else if (roundCounter == 0) { 
+        } 
+        // 開局
+        else if (roundCounter == 0) { 
             x = MIDPOINT_X;
             y = MIDPOINT_Y;
-        } else { 
-            if (chessBoard->cord[1][0] > MIDPOINT_X) {
-                if (chessBoard->cord[1][1] > MIDPOINT_Y) {
-                    x = MIDPOINT_X + 2;
-                    y = MIDPOINT_Y + 2;
-                } else if (chessBoard->cord[1][1] < MIDPOINT_Y) {
-                    x = MIDPOINT_X + 2;
-                    y = MIDPOINT_Y - 2;
-                } else {
-                    x = MIDPOINT_X + 2;
-                    y = MIDPOINT_Y;
-                }
-            } else if (chessBoard->cord[1][0] < MIDPOINT_X) {
-                if (chessBoard->cord[1][1] > MIDPOINT_Y) {
-                    x = MIDPOINT_X - 2;
-                    y = MIDPOINT_Y + 2;
-                } else if (chessBoard->cord[1][1] < MIDPOINT_Y) {
-                    x = MIDPOINT_X - 2;
-                    y = MIDPOINT_Y - 2;
-                } else {
-                    x = MIDPOINT_X - 2;
-                    y = MIDPOINT_Y;
-                }
-            } else {
-                if (chessBoard->cord[1][1] > MIDPOINT_Y) {
-                    x = MIDPOINT_X;
-                    y = MIDPOINT_Y + 2;
-                } else {
-                    x = MIDPOINT_X;
-                    y = MIDPOINT_Y - 2;
-                }
+        }
+        // 第二步
+        else { 
+            //浦月開局
+            x = 12;
+            y = 12;
+            if(board[y][x] != 0 || board[10][10]) { 
+                x = 12; // 不懂什麽開局
+                y = 10;
             }
         }
-        //printf("Trying to set piece at (%d, %d)\n", x, y);
 
         if (setXY(chessBoard, x, y, player, board)) {
             coordinate[0] = x;
             coordinate[1] = y;
             return coordinate;
         } else {
-            //printf("Position (%d, %d) is already occupied or invalid\n", x, y);
             denyCount++;
             if (denyCount > 10) {
-                //printf("Too many invalid positions, breaking out of loop.\n");
                 break;
             }
         }
@@ -351,14 +425,7 @@ typedef struct{
     int x;
     int y;
 }GoResult;
-//檢查字串是否相等函式-----
-int checkString(char *fileName,char *targetName){
-    while (*fileName != '\0' && *targetName != '\0' && *fileName == *targetName) {
-        fileName++;
-        targetName++;
-    }
-    return (*fileName - *targetName);
-}
+
 //原 go() 實作-----
 GoResult go(char *fileName,ChessArray *chessBoard, char playerRole,int board[MAX][MAX]){
     GoResult goResult;
@@ -397,16 +464,6 @@ GoResult go(char *fileName,ChessArray *chessBoard, char playerRole,int board[MAX
 }
 //原 go() 實作----------END
 
-void printBoard(int board[MAX][MAX]) {
-    for (int i = 0; i < MAX; i++) {
-        for (int j = 0; j < MAX; j++) {
-            printf("%d ", board[i][j]);
-        }
-        printf("\n");
-    }
-}
-
-
 int main(){
     ChessArray chessBoard;
     init_ChessArray(&chessBoard);
@@ -431,12 +488,11 @@ int main(){
             roundCounter=count;
             printf("%d\n",count);
             printChess(&chessBoard);
-            printBoard(board); // 打印棋盘状态
             if(count>50){
                 break;
             }
         }
-        sleep(3); // 3 seconds
+        sleep(3); // 5 seconds
     }
     destructor_ChessArray(&chessBoard); // Must Have
 }
