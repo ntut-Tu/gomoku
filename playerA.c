@@ -186,7 +186,7 @@ int evaluatePosition(int board[MAX][MAX], int x, int y, int player) {
     }
 
     // 防守策略
-    defence += 1000 * op_line[5] + 70 * op_line[4] + 50 * op_line[3];
+    defence += 1000 * op_line[5] + 500 * op_line[4] + 50 * op_line[3];
     
     total_score += attack + defence;
     return total_score;
@@ -381,24 +381,6 @@ void printBoard(int board[MAX][MAX]) {
         printf("%2d ",i);
         for (int j = 1; j < MAX; j++) {
             printf("%2d ", board[i][j]);
-        }
-        printf("\n");
-    }
-    printf("PlayerA:\n");
-    for(int i = 0; i<MAX; i++){
-        printf("%2d ",i);
-    }
-    printf("\n");
-    for (int i = 1; i < MAX; i++) {
-        printf("%2d ",i);
-        for (int j = 1; j < MAX; j++) {
-            int temp = 0;
-            for (int n = 2; n < 7; n++) {
-                if(checkLine(board,j,i,2,n)!=0){
-                    temp = n;
-                }
-            }
-            printf("%2d ", temp);
         }
         printf("\n");
     }
