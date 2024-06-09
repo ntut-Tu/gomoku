@@ -174,17 +174,6 @@ int evaluatePosition(int board[MAX][MAX], int x, int y, int player) {
         op_line[i] = checkLine(board, x, y, 3 - player, i); 
     }
 
-    // 调试输出，确认 checkLine 函数返回的数据
-    printf("my: ");
-    for (int i = 2; i < 7; i++) {
-        printf("%d ", my_line[i]);
-    }
-    printf("\n op: ");
-    for (int i = 2; i < 7; i++) {
-        printf("%d ", op_line[i]);
-    }
-    printf("\n");
-
     // 进攻策略
     attack += 1000 * my_line[5] + 95 * my_line[4] + 90 * my_line[6];
     attack += 70 * my_line[3] + 55 * my_line[2];
@@ -197,7 +186,7 @@ int evaluatePosition(int board[MAX][MAX], int x, int y, int player) {
     }
 
     // 防守策略
-    defence += 1000 * op_line[5] + 80 * op_line[4] + 50 * op_line[3];
+    defence += 1000 * op_line[5] + 70 * op_line[4] + 50 * op_line[3];
     
     total_score += attack + defence;
     return total_score;
