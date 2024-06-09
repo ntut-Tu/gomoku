@@ -11,7 +11,7 @@
 #define MIDPOINT_Y 11
 #define MAX 21
 //全域變數roundCounter
-static int roundCounter=0;
+int roundCounter=0;
 
 //替代class Chess 自訂義Struct : ChessArray({int x,int y,int player},int size)-----
 typedef struct{             //typedef:讓你能像在用其他語言時一樣用: Struct名稱 物件名稱 ，而不是: Struct Struct名稱 物件名稱
@@ -46,7 +46,6 @@ void pop_ChessArray(ChessArray *array){
 }
 //ChessArray 基本新增與移除函式-----END
 
-
 /*檢查指定位置落子後是否形成有效連線
 參數：
 - board: 棋盤的狀態，二維整數陣列表示
@@ -77,10 +76,8 @@ int checkLine(int board[MAX][MAX], int x, int y, int player) {
                     ny = y - j * dy[i];
                 }
                 if (nx >= 0 && nx < MAX && ny >= 0 && ny < MAX) {
-                    if (board[ny][nx] == player) {
-                        count++;
-                    }else{
-                        //判斷活死
+                    if (board[ny][nx] == player) count++;
+                    else{
                         if(board[ny][nx] == 3 - player){
                             //若出現 x 2 2 2 1 時視為3子(2子)而已
                             offset = -1;
@@ -108,11 +105,11 @@ int checkLine(int board[MAX][MAX], int x, int y, int player) {
                     }
                 } else {
                     offset = -1;
-                    break;
-                } // 超出邊界停止計算
+                    break; // 超出邊界停止計算
+                }
             }
         }
-        if(count !=5 && count!=0){
+        if(count >=5 && count!=1){
             count += offset;
         }
         // 更新最大連線數
@@ -129,7 +126,7 @@ int checkLine(int board[MAX][MAX], int x, int y, int player) {
 - player: 當前玩家的標識（1 或 2）
 返回值：
 - 返回1如果落子後形成有效連線，否則返回禁手代碼（-3：三三禁手，-4：四四禁手，-5：長連禁手）*/
-float checkUnValid(int board[MAX][MAX], int x, int y, int player) {
+int checkUnValid(int board[MAX][MAX], int x, int y, int player) {
     int dx[] = {1, 1, 0, -1}; // 水平、垂直、主對角線、副對角線的移動方向
     int dy[] = {0, 1, 1, 1};
     int threeCount = 0, fourCount = 0; // 禁手規則計數器
@@ -170,24 +167,20 @@ float checkUnValid(int board[MAX][MAX], int x, int y, int player) {
         }
         // 檢查長連禁點
         if (count > 5) {
-            return 1; // 長連禁點
+            return -1; // 長連禁點
         }
     }
 
-    if (fourCount >= 2) {
-        return 1; //四四
+    if (threeCount >= 2 || fourCount >= 2) {
+        return -1; // 三三禁點 / 四四禁點
     }
-    if (threeCount >= 2) {
-        return 1; // 三三
-    }
-
     return 1; // 有效
 }
 
 // 加權函數
-float evaluatePosition(int board[MAX][MAX], int x, int y, int player) {
+int evaluatePosition(int board[MAX][MAX], int x, int y, int player) {
     // 根據進攻和防守策略評估位置的範例函數
-    float score = 0;
+    int score = 0;
     int my_line = checkLine(board, x, y, player);
     int op_line = checkLine(board, x, y, 3 - player);
     // 進攻策略
@@ -201,17 +194,11 @@ float evaluatePosition(int board[MAX][MAX], int x, int y, int player) {
         score += 50; // 活二
     }
 
-    if(checkUnValid(board, x, y, player)>0){
-        score *= 2;
-    }
-
     // 防守策略
     if (op_line >= 5) {
-        score += 1000; // 阻止對手的連五
+        score += 500; // 阻止對手的連五
     } else if (op_line == 4) {
-        score += 500; // 阻止對手的連四
-    }else if (op_line == 3){
-        score += 60;
+        score += 100; // 阻止對手的連四
     }
 
     return score;
@@ -219,23 +206,23 @@ float evaluatePosition(int board[MAX][MAX], int x, int y, int player) {
 
 // 找最佳落子
 void findBestMove(int board[MAX][MAX], int *bestX, int *bestY, int player) {
-    float maxScore = -1; // 初始化最大分數
+    int maxScore = -1; // 初始化最大分數
     int x, y;
     bool found = false; // 判斷是否找到合適位置
 
     // 遍歷棋盤上的每個位置
     for (x = 1; x < MAX; x++) {
         for (y = 1; y < MAX; y++) {
-            float score= evaluatePosition(board, x, y, player);
-            if(score!=0){
-                printf("(%d, %d)--->%.0f\n",x,y,score);
-            }
-            // 若當前位置的權重值大於當前最大值，更新最大值及對應座標
-            if (score > maxScore) {
-                maxScore = score;
-                *bestX = x;
-                *bestY = y;
-                found = true;
+            if (checkUnValid(board, x, y, player)) { // 使用禁手規則檢查
+                int score = evaluatePosition(board, x, y, player); // 計算當前位置的分數
+                printf("(%d, %d)--->%d\n",x,y,score);
+                // 若當前位置的權重值大於當前最大值，更新最大值及對應座標
+                if (score > maxScore) {
+                    maxScore = score;
+                    *bestX = x;
+                    *bestY = y;
+                    found = true;
+                }
             }
         }
     }
@@ -308,17 +295,20 @@ int* writeChessBoard(ChessArray *chessBoard, int player, int board[MAX][MAX]) {
     int x, y;
     int *coordinate = (int *) malloc(3 * sizeof(int));
     while (true) {
-        if (roundCounter > 0) {
+        if (roundCounter > 1) {
             int bestX, bestY;
             findBestMove(board, &bestX, &bestY, player); // 找到最佳位置
             x = bestX;
             y = bestY;
         } else if (roundCounter == 0) {
-            x = MIDPOINT_X + ((float)rand() / RAND_MAX) * 2.0f - 1.0f;
-            y = MIDPOINT_Y + ((float)rand() / RAND_MAX) * 2.0f - 1.0f;
-            while(x==y&&x==0){
-                x = MIDPOINT_X + ((float)rand() / RAND_MAX) * 2.0f - 1.0f;
-                y = MIDPOINT_Y + ((float)rand() / RAND_MAX) * 2.0f - 1.0f;
+            x = MIDPOINT_X;
+            y = MIDPOINT_Y;
+        } else {
+            x = MIDPOINT_X + (rand() % 5) - 2;
+            y = MIDPOINT_Y + (rand() % 5) - 2;
+            while(board[x][y]!=0){
+                x = MIDPOINT_X + (rand() % 5) - 2;
+                y = MIDPOINT_Y + (rand() % 5) - 2;
             }
         }
         //printf("Trying to set piece at (%d, %d)\n", x, y);
@@ -374,12 +364,6 @@ GoResult go(char *fileName,ChessArray *chessBoard, char playerRole,int board[MAX
         int x=coor[0];
         int y=coor[1];
         printf("2:%d %d\n",x,y);
-        if(x == 0 && y==0){
-            goResult.legal=false;
-            goResult.x=0;
-            goResult.y=0;
-            return goResult;
-        }
         setXY(chessBoard,x,y,co_player,board);
         int* result=writeChessBoard(chessBoard,player,board);
         x=result[0];
@@ -402,7 +386,6 @@ GoResult go(char *fileName,ChessArray *chessBoard, char playerRole,int board[MAX
 //原 go() 實作----------END
 
 void printBoard(int board[MAX][MAX]) {
-
     for(int i = 0; i<MAX; i++){
         printf("%2d ",i);
     }
@@ -414,7 +397,7 @@ void printBoard(int board[MAX][MAX]) {
         }
         printf("\n");
     }
-    printf("PlayerB:\n");
+    printf("PlayerA:\n");
     for(int i = 0; i<MAX; i++){
         printf("%2d ",i);
     }
@@ -434,7 +417,7 @@ int main(){
     init_ChessArray(&chessBoard);
 
     char fileName[10];
-    printf("fileName B:");
+    printf("fileName A:");
     scanf("%s",fileName);
 
     char playerRole;
