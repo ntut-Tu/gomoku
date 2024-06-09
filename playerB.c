@@ -46,6 +46,7 @@ void pop_ChessArray(ChessArray *array){
 }
 //ChessArray 基本新增與移除函式-----END
 
+
 /*檢查指定位置落子後是否形成有效連線
 參數：
 - board: 棋盤的狀態，二維整數陣列表示
@@ -401,6 +402,7 @@ GoResult go(char *fileName,ChessArray *chessBoard, char playerRole,int board[MAX
 //原 go() 實作----------END
 
 void printBoard(int board[MAX][MAX]) {
+
     for(int i = 0; i<MAX; i++){
         printf("%2d ",i);
     }
@@ -409,6 +411,18 @@ void printBoard(int board[MAX][MAX]) {
         printf("%2d ",i);
         for (int j = 1; j < MAX; j++) {
             printf("%2d ", board[i][j]);
+        }
+        printf("\n");
+    }
+    printf("PlayerB:\n");
+    for(int i = 0; i<MAX; i++){
+        printf("%2d ",i);
+    }
+    printf("\n");
+    for (int i = 1; i < MAX; i++) {
+        printf("%2d ",i);
+        for (int j = 1; j < MAX; j++) {
+            printf("%2d ", checkLine(board,j,i,2));
         }
         printf("\n");
     }

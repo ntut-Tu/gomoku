@@ -81,6 +81,25 @@ int checkLine(int board[MAX][MAX], int x, int y, int player) {
                         if(board[ny][nx] == 3 - player){
                             //若出現 x 2 2 2 1 時視為3子(2子)而已
                             offset = -1;
+                        }else{
+                            //若為空格
+                            if(player == 2){
+                                nx = x + (j+1) * dx[i]; // 計算相鄰位置的 x 座標
+                                ny = y + (j+1) * dy[i]; // 計算相鄰位置的 y 座標
+                                if (round == 1) { // 反方向
+                                    nx = x - (j+1) * dx[i];
+                                    ny = y - (j+1) * dy[i];
+                                }
+                                if (nx >= 0 && nx < MAX && ny >= 0 && ny < MAX){
+                                    //若出現 x 2 2 2 0 1 時視為3子而已 *(issue)
+                                    //有誤:這種情形的威脅性應該遠大於上面
+                                    if(board[ny][nx] == 3 - player){
+                                        offset = -1;
+                                    }
+                                }else{
+                                    offset = -1;
+                                }
+                            }
                         }
                         break; // 遇到空格或對手棋子停止計算
                     }
@@ -90,7 +109,7 @@ int checkLine(int board[MAX][MAX], int x, int y, int player) {
                 }
             }
         }
-        if(count !=5 && count!=0){
+        if(count >=5 && count!=1){
             count += offset;
         }
         // 更新最大連線數
@@ -375,6 +394,18 @@ void printBoard(int board[MAX][MAX]) {
         printf("%2d ",i);
         for (int j = 1; j < MAX; j++) {
             printf("%2d ", board[i][j]);
+        }
+        printf("\n");
+    }
+    printf("PlayerA:\n");
+    for(int i = 0; i<MAX; i++){
+        printf("%2d ",i);
+    }
+    printf("\n");
+    for (int i = 1; i < MAX; i++) {
+        printf("%2d ",i);
+        for (int j = 1; j < MAX; j++) {
+            printf("%2d ", checkLine(board,j,i,2));
         }
         printf("\n");
     }
