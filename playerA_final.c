@@ -253,7 +253,7 @@ int evaluatePosition(int board[MAX][MAX], int x, int y, int minX, int maxX, int 
     
     // 若對手已經要有活四(現在已經是活三)，可是我沒有活四/冲四（危險）
     if (op_line[4] > 0 &&  (my_now[4] == 0 || my_line[4] == 0 || my_line[5] == 0 || my_line[8] == 0)) { 
-        defence += 50000; 
+        defence += 100000; 
     }
     // 若對手已經要有冲四(現在已經是眠三)，可是我沒有活四/冲四(非常危險)
     if(op_line[8] > 0 && (my_now[4] == 0 || my_line[4] == 0 || my_line[5] == 0 || my_line[8] == 0)){
