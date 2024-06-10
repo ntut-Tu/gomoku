@@ -74,6 +74,16 @@ void pop_ChessArray(ChessArray *array){
 //ChessArray 基本新增與移除函式-----END
 
 /* 檢查指定位置落子後是否形成指定有效連線數的數量
+參數：
+- board: 棋盤的狀態，二維整數陣列表示
+- x: 要檢查的位置的 x 座標
+- y: 要檢查的位置的 y 座標
+- minX: 棋盤的最小 x 邊界
+- maxX: 棋盤的最大 x 邊界
+- minY: 棋盤的最小 y 邊界
+- maxY: 棋盤的最大 y 邊界
+- player: 當前玩家的標識（1 或 2）
+- num: 需要檢查的連線數
 返回值：
 - 返回連線的數量，如果落子後形成有效連線，則返回大於1的正整數，否則返回 <=1 */
 int checkLine(int board[MAX][MAX], int x, int y, int minX, int maxX, int minY, int maxY, int player, int num) {
@@ -127,6 +137,11 @@ int checkLine(int board[MAX][MAX], int x, int y, int minX, int maxX, int minY, i
 }
 
 /* 檢查指定位置落子後是否形成無效連線（禁手）
+參數：
+- board: 棋盤的狀態，二維整數陣列表示
+- x: 要檢查的位置的 x 座標
+- y: 要檢查的位置的 y 座標
+- player: 當前玩家的標識（1 或 2）
 返回值：
 - 返回1如果落子後形成有效連線，否則返回禁手代碼（-3：三三禁手，-4：四四禁手，-5：長連禁手）*/
 int checkUnValid(int board[MAX][MAX], int x, int y, int player) {
@@ -206,7 +221,7 @@ int evaluatePosition(int board[MAX][MAX], int x, int y, int minX, int maxX, int 
     int my_now[9] = {0,0,0,0,0,0,0,0}, op_now[9] = {0,0,0,0,0,0,0,0}; 
     
     // 更新
-    for (int i = 2; i < 8; i++) {
+    for (int i = 2; i < 9; i++) {
         my_line[i] = checkLine(board, x, y, minX, maxX, minY, maxY, player, i); 
         op_line[i] = checkLine(board, x, y, minX, maxX, minY, maxY, 3 - player, i);
         
@@ -224,7 +239,7 @@ int evaluatePosition(int board[MAX][MAX], int x, int y, int minX, int maxX, int 
                 10 * my_line[6];     // 眠二
     // 四三解禁(進攻時機)
     if (my_line[3] > 0 && my_line[6] > 0) { 
-        attack += 20000; 
+        attack += 30000;
     }
 
     // 防守策略
@@ -237,12 +252,11 @@ int evaluatePosition(int board[MAX][MAX], int x, int y, int minX, int maxX, int 
                 10 * op_line[6];     // 眠二
     
     // 若對手已經要有活四(現在已經是活三)，可是我沒有活四/冲四（危險）
-    if (op_line[4] > 0 && (my_now[4]< 0 ) ) { 
-        printf("stop_him----------------------------------->\n");
+    if (op_line[4] > 0 &&  (my_now[4] == 0 || my_line[4] == 0 || my_line[5] == 0 || my_line[8] == 0)) { 
         defence += 50000; 
     }
     // 若對手已經要有冲四(現在已經是眠三)，可是我沒有活四/冲四(非常危險)
-    if(op_line[8] > 0 && (my_now[4]<0 || my_line[4] < 0 || my_line[8]< 0)){
+    if(op_line[8] > 0 && (my_now[4] == 0 || my_line[4] == 0 || my_line[5] == 0 || my_line[8] == 0)){
         defence += 20000; 
     }
 
@@ -395,7 +409,7 @@ int* writeChessBoard(ChessArray *chessBoard, int player, int board[MAX][MAX]) {
             //浦月開局
             x = 12;
             y = 12;
-            if(board[y][x] != 0 || board[10][10]) { 
+            if(board[y][x] != 0 || board[10][10] != 0) { 
                 x = 12; // 不懂什麽開局
                 y = 10;
             }
@@ -464,6 +478,16 @@ GoResult go(char *fileName,ChessArray *chessBoard, char playerRole,int board[MAX
 }
 //原 go() 實作----------END
 
+void printBoard(int board[MAX][MAX]) {
+    for (int i = 0; i < MAX; i++) {
+        for (int j = 0; j < MAX; j++) {
+            printf("%d ", board[i][j]);
+        }
+        printf("\n");
+    }
+}
+
+
 int main(){
     ChessArray chessBoard;
     init_ChessArray(&chessBoard);
@@ -488,6 +512,7 @@ int main(){
             roundCounter=count;
             printf("%d\n",count);
             printChess(&chessBoard);
+            //printBoard(board); // 打印棋盘状态
             if(count>50){
                 break;
             }
