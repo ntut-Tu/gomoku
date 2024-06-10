@@ -1,7 +1,3 @@
-//
-// Created by 杜坤翰 on 2024/3/9.
-// Updated by 鄭錦鑫 on 2024/6/8
-
 #include <stdio.h>
 #include <stdlib.h> /* 亂數相關函數 */
 #include <time.h>   /* 時間相關函數 */
@@ -12,6 +8,7 @@
 #define MIDPOINT_X 11
 #define MIDPOINT_Y 11
 #define MAX 21
+#define MAX_DEPTH 1 // 定義搜索深度
 
 //全域變數roundCounter
 int roundCounter=0;
@@ -122,20 +119,16 @@ int checkLine(int board[MAX][MAX], int x, int y, int minX, int maxX, int minY, i
                 }
             }
         }
-
-        // 白棋勝利條件
-        if(player == 2 && num == 5 && count >= 5) total++;
-        // 可以五連
-        else if(count == 5 && num == 5)total++;
-        // 眠二/眠三/冲四
-        else if(openEnds == 1){
-            if ((num == 6 && count == 2) ||(num == 7 && count == 3) || (num == 8 && count == 4)) total++;
+        // 五連(一段被堵)/眠二/眠三/冲四
+        if(openEnds == 1){
+            if ((num == 5 && count == 5)||(num == 6 && count == 2) ||(num == 7 && count == 3) || (num == 8 && count == 4)) {
+                total++;
+            }
         }
         // 活二三四五
         else if(openEnds > 1){
             if(count == num) total++;
         }
-        
     }
     return total;
 }
@@ -225,7 +218,7 @@ int evaluatePosition(int board[MAX][MAX], int x, int y, int minX, int maxX, int 
     int my_now[9] = {0,0,0,0,0,0,0,0}, op_now[9] = {0,0,0,0,0,0,0,0}; 
     
     // 更新
-    for (int i = 2; i < 9; i++) {
+    for (int i = 2; i < 8; i++) {
         my_line[i] = checkLine(board, x, y, minX, maxX, minY, maxY, player, i); 
         op_line[i] = checkLine(board, x, y, minX, maxX, minY, maxY, 3 - player, i);
         
@@ -243,7 +236,7 @@ int evaluatePosition(int board[MAX][MAX], int x, int y, int minX, int maxX, int 
                 10 * my_line[6];     // 眠二
     // 四三解禁(進攻時機)
     if (my_line[3] > 0 && my_line[6] > 0) { 
-        attack += 30000;
+        attack += 20000; 
     }
 
     // 防守策略
@@ -256,18 +249,102 @@ int evaluatePosition(int board[MAX][MAX], int x, int y, int minX, int maxX, int 
                 10 * op_line[6];     // 眠二
     
     // 若對手已經要有活四(現在已經是活三)，可是我沒有活四/冲四（危險）
-    if (op_line[4] > 0 &&  (my_now[4] == 0 || my_line[4] == 0 || my_line[5] == 0 || my_line[8] == 0)) { 
-        defence += 100000; 
+    if (op_line[4] > 0 && (my_now[4]< 0 ) ) { 
+        printf("stop_him----------------------------------->\n");
+        defence += 50000; 
     }
     // 若對手已經要有冲四(現在已經是眠三)，可是我沒有活四/冲四(非常危險)
-    else if(op_line[8] > 0 && (my_now[4] == 0 || my_line[4] == 0 || my_line[5] == 0 || my_line[8] == 0)){
+    if(op_line[8] > 0 && (my_now[4]<0 || my_line[4] < 0 || my_line[8]< 0)){
         defence += 20000; 
     }
 
     // 計算
     total_score +=  2 * attack + defence + 10 * positionWeight[x][y] ;
+    printf("(%d, %d)---->score:%d(%d+%d)\n",x,y, total_score,attack,defence);
     return total_score;
 }
+
+int checkWin(int board[MAX][MAX], int player) {
+    // 检查棋盘上是否有某个玩家的五连子
+    for (int x = 0; x < MAX; x++) {
+        for (int y = 0; y < MAX; y++) {
+            if (checkLine(board, x, y, 0, MAX, 0, MAX, player, 5) > 0) {
+                return 1;
+            }
+        }
+    }
+    return 0;
+}
+
+// AlphaBeta剪枝優化的miniMax函數
+int miniMax(int board[MAX][MAX], int depth, bool isMaximizing, int player, int alpha, int beta, int minX, int maxX, int minY, int maxY) {
+    // 检查游戏是否已经结束
+    if (checkWin(board, player)) return INT_MAX;
+    if (checkWin(board, 3 - player)) return INT_MIN;
+    // 深度為0(現在)
+    if (depth == 0) {
+        int score = 0;
+        for (int x = minX; x <= maxX; x++) {
+            for (int y = minY; y <= maxY; y++) {
+                if (board[y][x] == 0 && checkUnValid(board, x, y, player) == 1) {
+                    score += evaluatePosition(board, x, y, minX, maxX, minY, maxY, player);
+                }
+            }
+        }
+        return score;
+    }
+
+    int bestScore;
+    if (isMaximizing) {
+        bestScore = INT_MIN;
+        for (int x = minX; x <= maxX; x++) {
+            for (int y = minY; y <= maxY; y++) {
+                if (board[y][x] == 0 && checkUnValid(board, x, y, player) == 1) {
+                    board[y][x] = player;
+                    int score = miniMax(board, depth - 1, false, player, alpha, beta, minX, maxX, minY, maxY);
+                    board[y][x] = 0;
+                    if (score > bestScore) {
+                        bestScore = score;
+                    }
+                    if (bestScore > alpha) {
+                        alpha = bestScore;
+                    }
+                    if (beta <= alpha) {
+                        break; // Beta 剪枝
+                    }
+                }
+            }
+            if (beta <= alpha) {
+                break; // Beta 剪枝
+            }
+        }
+    } else {
+        bestScore = INT_MAX;
+        for (int x = minX; x <= maxX; x++) {
+            for (int y = minY; y <= maxY; y++) {
+                if (board[y][x] == 0 && checkUnValid(board, x, y, 3 - player) == 1) {
+                    board[y][x] = 3 - player;
+                    int score = miniMax(board, depth - 1, true, player, alpha, beta, minX, maxX, minY, maxY);
+                    board[y][x] = 0;
+                    if (score < bestScore) {
+                        bestScore = score;
+                    }
+                    if (bestScore < beta) {
+                        beta = bestScore;
+                    }
+                    if (beta <= alpha) {
+                        break; // Alpha 剪枝
+                    }
+                }
+            }
+            if (beta <= alpha) {
+                break; // Alpha 剪枝
+            }
+        }
+    }
+    return bestScore;
+}
+
 
 // 计算当前棋局的最小和最大边界
 void getBounds(int board[MAX][MAX], int *minX, int *maxX, int *minY, int *maxY) {
@@ -288,10 +365,10 @@ void getBounds(int board[MAX][MAX], int *minX, int *maxX, int *minY, int *maxY) 
     }
     
     // 扩大边界
-    *minX = (*minX - 3 >= 0) ? *minX - 3 : 0;
-    *maxX = (*maxX + 3 < MAX) ? *maxX + 3 : MAX - 1;
-    *minY = (*minY - 3 >= 0) ? *minY - 3 : 0;
-    *maxY = (*maxY + 3 < MAX) ? *maxY + 3 : MAX - 1;
+    *minX = (*minX - 1 >= 0) ? *minX - 1 : 0;
+    *maxX = (*maxX + 1 < MAX) ? *maxX + 1 : MAX - 1;
+    *minY = (*minY - 1 >= 0) ? *minY - 1 : 0;
+    *maxY = (*maxY + 1 < MAX) ? *maxY + 1 : MAX - 1;
 }
 
 // 找最佳落子
@@ -302,26 +379,20 @@ void findBestMove(int board[MAX][MAX], int *bestX, int *bestY, int player) {
 
     int minX, maxX, minY, maxY;
     getBounds(board, &minX, &maxX, &minY, &maxY);
+
     // 遍歷棋盤上的每個位置
     for (x = minX; x <= maxX; x++) {
         for (y = minY; y <= maxY; y++) {
             if (checkUnValid(board, x, y, player)) { // 使用禁手規則檢查
-                int score = evaluatePosition(board, x, y, minX, maxX, minY, maxY,player); // 計算當前位置的分數
+                board[y][x] = player;
+                int score = miniMax(board, MAX_DEPTH, false, player, INT_MIN, INT_MAX, minX, maxX, minY, maxY);
+                board[y][x] = 0;
                 // 若當前位置的權重值大於當前最大值，更新最大值及對應座標
                 if (score > maxScore) {
                     maxScore = score;
                     *bestX = x;
                     *bestY = y;
                     found = true;
-                }
-                else if(score == maxScore){
-                    int Magic = rand() % 2;
-                    if(Magic){
-                        maxScore = score;
-                        *bestX = x;
-                        *bestY = y;
-                        found = true;
-                    }
                 }
             }
         }
@@ -336,6 +407,7 @@ void findBestMove(int board[MAX][MAX], int *bestX, int *bestY, int player) {
         *bestY = y;
     }
 }
+
 //原class Chess 底下函式實作------------START
 //Chess.setXY() 實作 -----
 bool setXY(ChessArray *chessBoard, int x, int y, int player, int board[MAX][MAX]) {
@@ -412,19 +484,22 @@ int* writeChessBoard(ChessArray *chessBoard, int player, int board[MAX][MAX]) {
             //浦月開局
             x = 12;
             y = 12;
-            if(board[y][x] != 0 || board[10][10] != 0) { 
+            if(board[y][x] != 0 || board[10][10]) { 
                 x = 12; // 不懂什麽開局
                 y = 10;
             }
         }
+        //printf("Trying to set piece at (%d, %d)\n", x, y);
 
         if (setXY(chessBoard, x, y, player, board)) {
             coordinate[0] = x;
             coordinate[1] = y;
             return coordinate;
         } else {
+            //printf("Position (%d, %d) is already occupied or invalid\n", x, y);
             denyCount++;
             if (denyCount > 10) {
+                //printf("Too many invalid positions, breaking out of loop.\n");
                 break;
             }
         }
@@ -442,7 +517,6 @@ typedef struct{
     int x;
     int y;
 }GoResult;
-
 //原 go() 實作-----
 GoResult go(char *fileName,ChessArray *chessBoard, char playerRole,int board[MAX][MAX]){
     GoResult goResult;
@@ -481,6 +555,15 @@ GoResult go(char *fileName,ChessArray *chessBoard, char playerRole,int board[MAX
 }
 //原 go() 實作----------END
 
+void printBoard(int board[MAX][MAX]) {
+    for (int i = 0; i < MAX; i++) {
+        for (int j = 0; j < MAX; j++) {
+            printf("%d ", board[i][j]);
+        }
+        printf("\n");
+    }
+}
+
 
 int main(){
     ChessArray chessBoard;
@@ -506,11 +589,12 @@ int main(){
             roundCounter=count;
             printf("%d\n",count);
             printChess(&chessBoard);
+            printBoard(board); // 打印棋盘状态
             if(count>50){
                 break;
             }
         }
-        sleep(3); // 5 seconds
+        sleep(3); // 3 seconds
     }
     destructor_ChessArray(&chessBoard); // Must Have
 }
