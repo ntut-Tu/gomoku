@@ -122,16 +122,20 @@ int checkLine(int board[MAX][MAX], int x, int y, int minX, int maxX, int minY, i
                 }
             }
         }
-        // 五連(一段被堵)/眠二/眠三/冲四
-        if(openEnds == 1){
-            if ((num == 5 && count == 5)||(num == 6 && count == 2) ||(num == 7 && count == 3) || (num == 8 && count == 4)) {
-                total++;
-            }
+
+        // 白棋勝利條件
+        if(player == 2 && num == 5 && count >= 5) total++;
+        // 可以五連
+        else if(count == 5 && num == 5)total++;
+        // 眠二/眠三/冲四
+        else if(openEnds == 1){
+            if ((num == 6 && count == 2) ||(num == 7 && count == 3) || (num == 8 && count == 4)) total++;
         }
         // 活二三四五
         else if(openEnds > 1){
             if(count == num) total++;
         }
+        
     }
     return total;
 }
@@ -256,13 +260,12 @@ int evaluatePosition(int board[MAX][MAX], int x, int y, int minX, int maxX, int 
         defence += 100000; 
     }
     // 若對手已經要有冲四(現在已經是眠三)，可是我沒有活四/冲四(非常危險)
-    if(op_line[8] > 0 && (my_now[4] == 0 || my_line[4] == 0 || my_line[5] == 0 || my_line[8] == 0)){
+    else if(op_line[8] > 0 && (my_now[4] == 0 || my_line[4] == 0 || my_line[5] == 0 || my_line[8] == 0)){
         defence += 20000; 
     }
 
     // 計算
     total_score +=  2 * attack + defence + 10 * positionWeight[x][y] ;
-    printf("(%d, %d)---->score:%d(%d+%d)\n",x,y, total_score,attack,defence);
     return total_score;
 }
 
@@ -478,15 +481,6 @@ GoResult go(char *fileName,ChessArray *chessBoard, char playerRole,int board[MAX
 }
 //原 go() 實作----------END
 
-void printBoard(int board[MAX][MAX]) {
-    for (int i = 0; i < MAX; i++) {
-        for (int j = 0; j < MAX; j++) {
-            printf("%d ", board[i][j]);
-        }
-        printf("\n");
-    }
-}
-
 
 int main(){
     ChessArray chessBoard;
@@ -512,7 +506,6 @@ int main(){
             roundCounter=count;
             printf("%d\n",count);
             printChess(&chessBoard);
-            //printBoard(board); // 打印棋盘状态
             if(count>50){
                 break;
             }
